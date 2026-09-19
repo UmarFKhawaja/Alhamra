@@ -5,11 +5,11 @@
 
 ## Context
 
-Presentation was primarily expressed as long Tailwind utility strings embedded in JSX. This mixed visual implementation with component structure, obscured the markup, and made it difficult to identify which component owned a style.
+Long utility-class strings embedded in JSX mix visual implementation with component structure, obscure the markup, and make style ownership harder to identify.
 
-The first stage of the refactor moved component CSS into colocated `styles.css` files with globally unique component-prefixed selectors. Colocation clarified ownership, but the selectors still occupied the global CSS namespace and depended on naming conventions to avoid collisions.
+Colocating styles in a plain CSS file clarifies ownership, but global selectors still depend on naming conventions to avoid collisions. CSS Modules provide a component-local namespace.
 
-Vite supports CSS Modules without an additional dependency. Tailwind's `@reference` and `@apply` directives can also be used inside a CSS Module.
+This decision assumes a build setup with CSS Modules support, such as Vite. Projects using Tailwind can also compose supported directives such as `@reference` and `@apply` inside a CSS Module.
 
 ## Decision
 
@@ -31,7 +31,7 @@ import clsx from 'clsx';
 
 Component-local CSS Module names use camelCase. They stay short and semantic within the module instead of repeating the component name. For example, prefer names such as `root`, `header`, `title`, `mobileOnly`, or `withTitle` over names such as `menu-bar__header` or `menu-bar--mobile-only`.
 
-Tailwind utilities may be composed inside the module with `@apply`. A component stylesheet uses `@reference` to access the application's Tailwind theme without duplicating it:
+In projects using Tailwind, utilities may be composed inside the module with `@apply`. A component stylesheet can use `@reference` to access the application's Tailwind theme without duplicating it. For example, adjust this path to the project's root stylesheet:
 
 ```css
 @reference '../../../app.css';
@@ -60,7 +60,7 @@ Component selectors are locally scoped and hashed by the build. Identically name
 
 The component must import the module class map and use it when assigning local classes. A plain local class string will not match the generated selector, so component-owned classes should be referenced as `styles.fooBar`.
 
-Intentional global classes, including `theme-page`, `theme-panel`, and `theme-page-backdrop`, remain global and are passed directly to `clsx` as plain strings.
+Intentional global classes, such as `theme-page`, `theme-panel`, and `theme-page-backdrop`, remain global and are passed directly to `clsx` as plain strings.
 
 Tailwind marker utilities that cannot be used with `@apply`, such as `group`, should be replaced with module-scoped parent/child selectors where practical.
 
@@ -70,6 +70,6 @@ Reusable components do not accept caller-owned class names. They expose semantic
 
 ## Exceptions
 
-Theme palette files remain at `app/themes/<theme>/theme.css` because they configure an entire theme rather than one component.
+Theme palette files belong in the theme layer, for example `app/themes/<theme>/theme.css`, because they configure an entire theme rather than one component.
 
-`app/app.css` remains the root stylesheet for Tailwind registration, semantic token aliases, base styles, and shared theme primitives.
+A root stylesheet, for example `app/app.css`, owns Tailwind registration where applicable, semantic token aliases, base styles, and shared theme primitives.

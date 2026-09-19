@@ -11,9 +11,9 @@ The application also needs one validated place to select the active visual theme
 
 ## Decision
 
-Themes implement a typed TypeScript contract defined in `app/themes/core/contract.ts`.
+Themes implement a shared typed TypeScript contract, for example in `app/themes/core/contract.ts`. Paths and identifiers here illustrate a possible project layout.
 
-The contract currently includes:
+The contract covers the application's composition boundaries, which may include:
 
 - authentication and management shells;
 - home and article views;
@@ -21,11 +21,11 @@ The contract currently includes:
 - shared branding data;
 - supported theme identifiers and color modes.
 
-Theme implementations are registered in `app/themes/core/registry.ts`. The refactor includes `default`, `emerald`, and `sapphire` implementations to verify that themes can differ structurally rather than only by palette.
+Theme implementations are registered centrally, for example in `app/themes/core/registry.ts`. A baseline theme such as `default` and a structurally different implementation can verify that the contract supports changes in composition as well as palette.
 
-`ThemeRuntimeProvider` exposes the selected theme definition, color mode, and branding through React context. Components obtain it through the exported `useThemeRuntime` hook.
+A runtime provider, named `ThemeRuntimeProvider` in these examples, exposes the selected theme definition, color mode, and branding through React context. Components obtain it through the exported `useThemeRuntime` hook.
 
-The root loader validates:
+Use one root loader to validate theme configuration. This guideline uses the following environment-variable convention:
 
 - `UI_THEME`, falling back to `default`;
 - `UI_MODE`, accepting `light`, `dark`, or `system` and falling back to `system`.
@@ -52,6 +52,6 @@ The contract contains views whose composition is expected to differ structurally
 
 Contract-bound views belong to each theme package. A theme must not hide per-theme differences behind a single cross-theme implementation with `variant` switches or theme-ID branching. If a piece of UI is truly reusable across themes, it belongs outside the theme layer as a theme-agnostic shared component or feature component.
 
-Theme selection is currently server-configured for the application environment. Per-user theme selection would require an additional persistence and request-resolution decision.
+Theme selection is server-configured for the application environment under this decision. Per-user theme selection would require an additional persistence and request-resolution decision.
 
 All registered theme components are present in the application bundle graph. If the number or size of themes grows significantly, lazy theme loading should be considered.

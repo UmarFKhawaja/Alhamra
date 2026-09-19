@@ -1,6 +1,10 @@
 # Architecture Decision Records
 
-This directory records architectural decisions made during the visual and functional separation refactor.
+This directory collects reusable architectural guidelines for TypeScript and React applications. Each ADR explains a decision, its rationale, and its consequences.
+
+Paths, component names, domain entities, and code snippets are examples of the conventions. Adapt them to the adopting project while preserving the architectural boundaries and behavior described. Framework-specific decisions apply when the project uses the named framework or an equivalent capability.
+
+The status and date on each ADR describe the decision record; they do not assert that a particular project has implemented it.
 
 The ADRs are:
 

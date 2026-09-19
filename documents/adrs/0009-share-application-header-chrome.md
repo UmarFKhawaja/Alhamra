@@ -5,15 +5,13 @@
 
 ## Context
 
-Public and management pages previously rendered visually similar top and menu bars through separate component markup and separate CSS variables.
-
-Their colors, heights, spacing, and responsive behavior consequently drifted when one implementation changed without the other.
+Public and management pages often render visually similar top and menu bars. Separate component markup and CSS variables allow their colors, heights, spacing, and responsive behavior to drift when one implementation changes without the other.
 
 ## Decision
 
-Public and management headers render their top and menu rows through the shared `NavBar` and `MenuBar` component packages.
+Public and management headers render their top and menu rows through shared component packages, named `NavBar` and `MenuBar` in these examples.
 
-Theme files define one application-wide chrome contract:
+Theme files define one application-wide chrome contract. For example:
 
 - `--app-top-bar-bg`;
 - `--app-top-bar-fg`;

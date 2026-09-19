@@ -5,9 +5,7 @@
 
 ## Context
 
-The application already routes colors, typography, shape, and some elevation through semantic theme tokens.
-
-Some components still applied raw Tailwind shadow utilities such as `shadow-sm`, `shadow-lg`, and `shadow-xl`, or authored gradients directly with utilities such as `bg-linear-to-r`, `from-*`, `via-*`, and `to-*`.
+Semantic theme tokens can control colors, typography, shape, and elevation while components still apply raw effects. Examples include Tailwind shadow utilities such as `shadow-sm`, `shadow-lg`, and `shadow-xl`, or gradient utilities such as `bg-linear-to-r`, `from-*`, `via-*`, and `to-*`.
 
 That approach pushes visual effect decisions back down into the component layer. It becomes harder to reason about why one theme appears flatter or louder than another, and it makes theme changes require component-by-component cleanup.
 
@@ -24,7 +22,7 @@ Components and shared views may consume only semantic effect utilities that reso
 
 Theme CSS files define the reusable effect roles for every supported theme and color mode. The shared CSS layer exposes those roles as semantic utilities.
 
-CTA gradients are reserved for branded treatments. Utility controls remain solid fills and may use shadow tokens, but not gradient fills.
+Call-to-action gradients are reserved for branded treatments. Utility controls remain solid fills and may use shadow tokens, but not gradient fills.
 
 ## Consequences
 

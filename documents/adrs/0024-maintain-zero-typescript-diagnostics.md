@@ -5,7 +5,7 @@
 
 ## Context
 
-The codebase had started to accumulate TypeScript diagnostics that did not block runtime behavior, but still weakened editor feedback, slowed review, and made future refactors harder to trust.
+TypeScript diagnostics can accumulate even when they do not block runtime behavior. An unresolved baseline weakens editor feedback, slows review, and makes future refactors harder to trust.
 
 Allowing known diagnostics to remain in place invites more of them. Once the baseline is no longer clean, it becomes difficult to tell whether a new message points to a real regression or just more tolerated noise.
 

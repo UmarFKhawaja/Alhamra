@@ -1,13 +1,33 @@
-# How to create a custom theme for Aphrodite
+# How to create a custom theme
 
-This guide walks through creating a custom theme from scratch. You'll need
-familiarity with React, CSS custom properties, and Tailwind CSS.
+This guide walks through adding a custom theme to a React application with a
+typed theme runtime. You'll need familiarity with React, TypeScript, CSS custom
+properties, and Tailwind CSS v4.
+
+## Prerequisites and example conventions
+
+The application should already implement the architecture described in
+[ADR-0004](../adrs/0004-use-semantic-design-tokens.md),
+[ADR-0005](../adrs/0005-select-themes-through-a-typed-runtime-contract.md), and
+[ADR-0014](../adrs/0014-let-themes-declare-font-assets.md):
+
+- a shared token contract and semantic CSS utilities;
+- typed shell and view props, a theme registry, and a runtime provider;
+- root-level theme and color-mode validation, HTML data attributes, and loading
+  of the active theme's declared stylesheets.
+
+The examples use `app/themes/`, a `default` theme, and a new theme named `ocean`.
+Paths, theme IDs, view names, and configuration keys are example conventions;
+adapt them to your project. `~` denotes an alias for `app/`. The React Router,
+`clsx`, branding, authentication, and feedback imports below assume equivalent
+dependencies and helpers in your application. Use your project's APIs and
+typed props when they differ.
 
 ---
 
 ## Architecture overview
 
-A theme in Aphrodite is the combination of two layers:
+In this architecture, a theme is the combination of two layers:
 
 | Layer | Location | What it controls |
 |---|---|---|
@@ -20,10 +40,10 @@ Tailwind v4 aliases them under shorter names (e.g. `bg-surface` resolves
 `var(--theme-surface)`) so you never write raw hex values in component styles.
 
 The React components are resolved at runtime from a typed registry. When you
-switch the active theme, Aphrodite renders the corresponding component tree.
+switch the active theme, the application renders the corresponding component tree.
 
-There are no build steps, code generators, or compile-time theme compilation.
-Everything is standard CSS and TypeScript/React.
+Themes use the application's existing CSS and TypeScript/React build pipeline;
+they do not require a separate theme generator.
 
 ---
 
@@ -33,7 +53,7 @@ Open `app/themes/core/contract.ts`. Add your theme's slug to the `themeIDs`
 array:
 
 ```ts
-export const themeIDs = ['default', 'emerald', 'sapphire', 'ocean'] as const;
+export const themeIDs = ['default', 'ocean'] as const;
 ```
 
 This makes `'ocean'` (or whatever name you choose) a valid `ThemeID`. The
@@ -43,25 +63,26 @@ string must be a valid CSS identifier (lowercase, no spaces).
 
 ## Step 2 — Create the CSS token file
 
-Create `app/themes/<name>/theme.css`. It must define **every token** listed in
-the contract below, for three selector blocks:
+Create `app/themes/<name>/theme.css`. Define **every token** in your application's
+contract for each supported color mode. This example supports three selector
+blocks:
 
 1. **Light mode** — `[data-ui-theme='<name>']`
 2. **Explicit dark mode** — `[data-ui-theme='<name>'][data-ui-mode='dark']`
 3. **System dark mode** — `@media (prefers-color-scheme: dark) { [data-ui-theme='<name>'][data-ui-mode='system'] { ... } }`
 
-Block 1 and block 3 are **mandatory**. Block 2 is optional but strongly
-recommended so users who explicitly choose "dark" get the correct palette
-regardless of OS setting.
+Include all three blocks when supporting `light`, `dark`, and `system` modes so
+users who explicitly choose "dark" get the correct palette regardless of OS setting.
 
-> Copy `app/themes/default/theme.css` as a starter. Replace every value;
-> do not leave a default fallback in place — if a token is missing, the cascade
-> will silently pick up another theme's value and produce visual bugs.
+> Use an existing complete theme, such as `app/themes/default/theme.css`, as a
+> starter. Review every value and define every required token explicitly.
+> Missing tokens can inherit unintended values or leave declarations invalid.
 
-### Complete token contract
+### Example token contract
 
-Every token below must appear in all three blocks with a value appropriate for
-that color mode.
+The tables below illustrate a shared token contract. Use your application's
+actual contract as the source of truth. For this example, every token below
+must appear in all three blocks with a value appropriate for that color mode.
 
 #### Colors
 
@@ -134,8 +155,8 @@ issues since CSS custom properties preserve them).
 
 | Token | Example |
 |---|---|
-| `--theme-font-heading` | `'Neue Haas Grotesk Display Pro', ui-sans-serif` |
-| `--theme-font-body` | `'Neue Haas Grotesk Display Pro', ui-sans-serif` |
+| `--theme-font-heading` | `'My Custom Font', ui-sans-serif` |
+| `--theme-font-body` | `'My Custom Font', ui-sans-serif` |
 
 #### Gradients
 
@@ -153,8 +174,8 @@ Use any valid `background-image` value (gradients, multiple gradients, etc.).
 
 #### Application chrome
 
-These default to theme-token references in most themes, which is fine — only
-change them if you want the app bar to diverge from the page surface.
+These can reference other theme tokens. Assign separate values when the app
+bar should diverge from the page surface.
 
 | Token |
 |---|
@@ -196,35 +217,52 @@ change them if you want the app bar to diverge from the page surface.
 
 ## Step 3 — Create theme components
 
-A theme must supply a component for each shell and view. The easiest way to
-start is to **reuse the default theme's components** and only replace the ones
-you want to customize.
+A theme must supply a component for each shell and view in the application's
+contract. Use an existing theme as a reference for the required props, then
+create implementations owned by the new theme. Reuse theme-agnostic helpers
+and controls from outside the theme layer.
 
 ### Directory structure
 
 ```
 app/themes/ocean/
   AuthShell/
+    index.ts
     component.tsx
     props.ts
     styles.module.css   (only if this component has custom styles)
   ManageShell/
+    index.ts
     component.tsx
     props.ts
     styles.module.css
   HomeView/
+    index.ts
     component.tsx
     props.ts
   ArticleView/
+    index.ts
     component.tsx
     props.ts
     styles.module.css
   AuthView/
+    index.ts
     component.tsx
     props.ts
   ProfileView/
+    index.ts
     component.tsx
     props.ts
+```
+
+These shells and views are examples; implement the entries in your own theme
+contract. Each component's `index.ts` exports its component and public props,
+following [ADR-0001](../adrs/0001-package-components-in-pascal-case-directories.md):
+
+```ts
+// app/themes/ocean/AuthShell/index.ts
+export { AuthShell } from './component';
+export type { AuthShellProps } from './props';
 ```
 
 ### Component patterns
@@ -340,22 +378,15 @@ export type { AuthViewProps } from '../../core/contract';
 ```
 
 If the same helper is useful across themes, move that helper out of the theme
-layer so it stays genuinely theme-agnostic.
+layer so it stays theme-agnostic.
 
-#### Full views (HomeView, ArticleView) — custom or reused
+#### Full views (HomeView, ArticleView) — theme-owned layout
 
-You can build a fully bespoke HomeView (like the emerald theme does) or reuse
-the default one:
-
-```tsx
-// Reusing the default (like sapphire does)
-import { HomeView as DefaultHomeView } from '../../default/HomeView';
-import type { HomeViewProps } from '../../core/contract';
-
-export function HomeView(props: HomeViewProps) {
-  return <DefaultHomeView {...props} />;
-}
-```
+Apply the same ownership rule to full-page views. Each theme controls the
+layout and composition of its contract views. Extract reusable content
+renderers or widgets into theme-agnostic component or feature packages, then
+compose them inside each theme's view. Keep workflow behavior in controllers,
+as described in [ADR-0006](../adrs/0006-separate-controllers-from-themed-views.md).
 
 ---
 
@@ -397,8 +428,10 @@ assets: {
 }
 ```
 
-The font-face file must live under `public/fonts/` so it's served at that path.
-Reference the font family by name in your `theme.css` tokens:
+In this example, the font-face stylesheet lives under
+`public/fonts/my-custom-font/` and is served at the URL above. Adapt the
+location to your application's static asset pipeline. Reference the font
+family by name in your `theme.css` tokens:
 
 ```css
 --theme-font-heading: 'My Custom Font', ui-sans-serif;
@@ -414,15 +447,11 @@ Reference the font family by name in your `theme.css` tokens:
 ```ts
 // app/themes/core/registry.ts
 import { defaultTheme } from '../default';
-import { emeraldTheme } from '../emerald';
-import { sapphireTheme } from '../sapphire';
 import { oceanTheme } from '../ocean';                    // ← add
 import type { ThemeDefinition, ThemeID } from './contract';
 
 const themes: Record<ThemeID, ThemeDefinition> = {
   default: defaultTheme,
-  emerald: emeraldTheme,
-  sapphire: sapphireTheme,
   ocean: oceanTheme                                       // ← add
 };
 
@@ -436,9 +465,7 @@ export function getTheme(themeID: ThemeID): ThemeDefinition {
 ```css
 /* app/app.css */
 @import 'tailwindcss';
-@import './themes/sapphire/theme.css';
 @import './themes/default/theme.css';
-@import './themes/emerald/theme.css';
 @import './themes/ocean/theme.css';   /* ← add */
 ```
 
@@ -449,15 +476,21 @@ export function getTheme(themeID: ThemeID): ThemeDefinition {
 
 ## Step 6 — Activate the theme
 
-Set the environment variables in your deployment or `.env` file:
+Configure the active theme and mode through your application's validated
+configuration. Following the example environment-variable convention, a
+`.env` file contains:
 
-```yaml
-# values/variables.yaml
-UI_THEME: "ocean"
-UI_MODE: "system"
+```dotenv
+UI_THEME=ocean
+UI_MODE=system
 ```
 
 Valid values for `UI_MODE` are `'light'`, `'dark'`, or `'system'`.
+
+The root runtime must read and validate these values, resolve the selected
+theme, and write `data-ui-theme` and `data-ui-mode` to `<html>`. Setting an
+environment variable alone does not implement that wiring. Use the deployment
+system's configuration mechanism when a `.env` file is not used.
 
 ---
 
@@ -482,7 +515,8 @@ in `app/app.css`. You never write a raw color or shadow — always use a token.
 
 ### In JSX with the global classes
 
-Two global classes are available everywhere:
+If the application defines global layout helpers, components can use them
+alongside semantic utilities. For example:
 
 ```tsx
 <div className="theme-page">           {/* full-page layout */}
@@ -493,7 +527,10 @@ Two global classes are available everywhere:
 </div>
 ```
 
-### Available Tailwind semantic utilities
+### Example Tailwind semantic utilities
+
+Register the utilities corresponding to your token contract in the application's
+shared stylesheet; these names are examples, not built-in Tailwind utilities.
 
 | Prefix | Examples |
 |---|---|
@@ -511,7 +548,7 @@ Two global classes are available everywhere:
   hex codes, box-shadows, or gradient definitions. If a component needs a
   special color, it belongs in the token contract.
 - **Use `clsx` for combining classes** in JSX. Import it from the `clsx`
-  package (already a dependency).
+  package if your project uses it, or use the project's class-composition helper.
 - **Use `@reference '../../../app.css'`** at the top of every CSS module so
   Tailwind utilities resolve correctly. Adjust the `..` depth based on your
   file's location.
@@ -519,9 +556,9 @@ Two global classes are available everywhere:
   `branding` (name, href, logos/icons) plus layout-specific props. Views get
   their data model. Do not change the prop interface — the calling code in
   pages/layouts expects the contract types exactly.
-- **Shared components use a `variant` prop** for theme-specific class
-  overrides without forking the entire component. Add your variant's classes
-  to the shared stylesheet.
+- **Shared components expose semantic appearance props** such as `tone` or
+  `emphasis` and consume theme tokens. Keep theme-specific composition in the
+  theme's own views instead of branching shared controls on theme IDs.
 - **Test both light and dark.** Set `UI_MODE` to `'light'`, `'dark'`, and
   `'system'` and verify all three render correctly.
 
@@ -541,7 +578,8 @@ registered in `registry.ts`, the CSS is imported in `app/app.css`, and
 CSS module starts with `@reference '../../../app.css';` (adjust path as
 needed). Without this, Tailwind can't resolve the theme tokens at build time.
 
-**Custom font doesn't load.** Confirm the font-face stylesheet is in
-`public/fonts/`, the path is listed in `assets.stylesheets` in your theme
-index, and the `--theme-font-*` tokens use the correct `font-family` name as
-declared in the `@font-face` rule.
+**Custom font doesn't load.** Confirm the font-face stylesheet and font files
+are served by your static asset pipeline, the stylesheet URL is listed in
+`assets.stylesheets`, and the root renders its stylesheet link for the active
+theme. Check that the `--theme-font-*` tokens use the `font-family` name declared
+in the `@font-face` rule.

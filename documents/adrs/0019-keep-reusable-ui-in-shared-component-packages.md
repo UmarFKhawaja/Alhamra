@@ -4,27 +4,21 @@
 - Date: 2026-06-22
 - Revised: 2026-06-25
 
-## Revision note (2026-06-25)
-
-The reusable-UI tier was renamed from `app/components/shared` to `app/elements`. `app/elements` is now the single home for the basic components used to construct every screen, and `app/components/shared` no longer exists. Wherever this ADR originally said `app/components/shared`, read `app/elements`. The boundary rules are unchanged; only the directory name changed so that the basic building blocks live in one clearly named tier alongside the existing auth and input primitives that already lived under `app/elements`.
-
 ## Context
 
-The repository already distinguishes between `app/elements`, `app/components/site`, and `app/themes/*`, but that boundary had drifted in practice.
+Applications need clear boundaries between reusable UI elements, domain components, and theme implementations.
 
-Several reusable form and layout controls were stored under `app/components/site` even though they were used by user-management screens, article editing, route placeholders, and theme-shared views. A theme-local `CountryPicker` wrapper also existed under `app/themes/shared/UserProfileView/components` even though it only adapted props for a reusable shared control.
+When generic form or layout controls live inside a domain area or theme package, that boundary becomes harder to read:
 
-That drift made the architecture harder to read:
-
-- `site` looked like a grab bag of generic and domain-specific components;
-- theme packages appeared to own controls that were not actually theme-specific;
-- reviewers had to inspect implementation details to determine whether a component was safe to reuse outside one screen or one management area.
+- domain directories become a mixture of generic and workflow-specific components;
+- theme packages appear to own controls that are not actually theme-specific;
+- reviewers must inspect implementation details to determine whether a component is safe to reuse outside one screen or workflow.
 
 ## Decision
 
-Reusable controls, form primitives, layout primitives, and generic composite UI live under `app/elements`. These are the basic components used to construct the UI; screens, widgets, pages, and themed views compose them.
+Reusable controls, form primitives, layout primitives, and generic composite UI live in one elements tier, represented here by `app/elements`. These are the basic components used to construct the UI; screens, widgets, pages, and themed views compose them. Adapt the directory paths to the project while preserving these boundaries.
 
-`app/components/site` is reserved for components whose meaning is specific to site-management or public-content workflows.
+Domain component directories, such as `app/components/projects`, are reserved for components whose meaning is specific to that domain's workflows.
 
 `app/themes/*` packages must not define standalone reusable controls unless the control is genuinely theme-specific and equivalent behavior is made available across every shipped theme. Theme packages should primarily compose shared components and theme styling, not own reusable control logic.
 
@@ -32,9 +26,9 @@ There is no separate “theme-shared” tier for contract-bound views. If code i
 
 Private subcomponents that only exist to make one themed view readable may remain inside that themed view package when they are not intended for broader reuse.
 
-## Audit result
+## Examples
 
-The first cleanup pass promotes these packages from `app/components/site` to the reusable tier (then `app/components/shared`, now `app/elements`):
+Components such as these belong in the reusable tier when they have no domain-specific dependencies:
 
 - `FormSection`
 - `FieldSection`
@@ -45,7 +39,7 @@ The first cleanup pass promotes these packages from `app/components/site` to the
 - `IconButton`
 - `Surface`
 
-The theme-local `UserProfileView/components/CountryPicker` wrapper is removed. `ProfileView` now consumes the shared `CountryPicker` directly.
+A themed profile view should consume the shared `CountryPicker` directly when a local wrapper would only adapt props without adding theme-specific behavior or presentation.
 
 ## Consequences
 
@@ -53,7 +47,7 @@ Shared UI is easier to discover because generic controls live in one obvious pla
 
 Theme packages stay focused on composition and styling, which keeps the theme contract cleaner and reduces duplicate control logic.
 
-`site` components now communicate domain intent more clearly. If a component remains under `app/components/site`, callers can assume it is tied to site-management or public-content concerns rather than being a general-purpose primitive.
+Domain components communicate their intent more clearly. For example, callers can assume a component under `app/components/projects` is tied to project workflows rather than being a general-purpose primitive.
 
 Future component reviews should ask two questions:
 

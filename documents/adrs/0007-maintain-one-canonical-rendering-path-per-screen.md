@@ -5,7 +5,7 @@
 
 ## Context
 
-Some screens had more than one implementation. A page could contain a local copy of markup while a similarly named widget existed but was not used. Other widgets were orphaned entirely.
+A screen can acquire more than one implementation: a page may contain a local copy of markup while a similarly named widget exists but is unused. Other widgets may become orphaned entirely.
 
 Duplicate implementations make it unclear which code is authoritative and allow fixes or visual changes to be applied to only one path.
 
@@ -15,15 +15,14 @@ Each screen has one canonical rendering path.
 
 Pages coordinate route-facing concerns and delegate rendering to the canonical widget or themed view. They do not maintain a second copy of the same screen implementation.
 
-The refactor consolidated:
+For example:
 
-- home sections into the existing home widgets;
-- article editing into `ArticleEditorWidget`;
-- user creation into `CreateUserWidget`;
-- account setup and password reset into their widgets within the authentication shell;
-- sign-in into the controller and theme-view path.
+- home sections delegate to shared home widgets;
+- article editing delegates to a single editor widget;
+- account setup and password reset delegate to their widgets within an authentication shell;
+- sign-in delegates to a controller and the selected theme view.
 
-The unused legacy `SignInWidget` was removed after the themed sign-in view became canonical.
+When a themed view becomes canonical, remove any superseded widget after verifying that it is unused.
 
 Unused implementations should be deleted rather than retained as speculative alternatives.
 
@@ -43,6 +42,6 @@ If two implementations are genuinely required, they must have distinct names and
 
 ## Rejected alternatives
 
-Keeping duplicate implementations during the migration was rejected because it would preserve ambiguity and make later cleanup harder.
+Keeping duplicate implementations after a migration was rejected because it would preserve ambiguity and make later cleanup harder.
 
 Selecting an implementation through ad hoc route conditionals was rejected in favor of the typed theme registry described in ADR-0005.

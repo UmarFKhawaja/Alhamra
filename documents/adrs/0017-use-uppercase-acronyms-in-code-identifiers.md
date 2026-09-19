@@ -5,15 +5,15 @@
 
 ## Context
 
-The repository already relies on naming consistency across entities, queries, mutations, helper types, and component packages.
+Naming consistency helps developers navigate entities, queries, mutations, helper types, and component packages.
 
 That consistency becomes harder to maintain when common domain or technical acronyms are written inconsistently, such as a lower-case acronym form in one place and `vendorSKU` in another.
 
-The codebase already uses uppercase acronyms in many exported TypeScript identifiers, including names such as `userID`, `bodyURL`, and `emailOTP`.
+Names such as `userID`, `callbackURL`, and `emailOTP` illustrate how uppercase acronyms can remain recognizable inside longer identifiers.
 
-As the domain model expands, especially around purchasing and treatment records, acronym handling should be explicit rather than left to taste.
+As a domain model expands, acronym handling should be explicit rather than left to taste.
 
-This decision complements [ADR-0016](/documents/adrs/0016-match-files-to-primary-exports.md): once file names mirror exports, acronym style must also be predictable.
+This decision complements [ADR-0016](./0016-match-files-to-primary-exports.md): once file names mirror exports, acronym style must also be predictable.
 
 ## Decision
 
@@ -42,18 +42,18 @@ Examples:
 
 - `otp: string`
 - `vendorSKU: string`
-- `productPurchaseID: string`
-- `SetManageUserPasswordInput`
+- `projectID: string`
+- `SetUserPasswordInput`
 - `getUserByID.ts`
 
 ## Boundaries
 
 This ADR applies to code identifiers, not every naming surface in the repository.
 
-It does not change these established conventions:
+Other naming surfaces retain their own conventions:
 
 - database tables and columns stay `snake_case`, such as `vendor_sku` and `user_id`;
-- route segments stay URL-friendly, such as `/manage/user/:userID`;
+- route segments stay URL-friendly, such as `/users/:userID`;
 - prose documentation may use normal human-readable capitalization.
 
 ## Consequences

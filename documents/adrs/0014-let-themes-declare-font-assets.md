@@ -5,32 +5,32 @@
 
 ## Context
 
-Themes already control semantic font tokens through `theme.css`, but custom font files were still an implicit global concern.
+A theme may control semantic font tokens through its stylesheet while custom font files remain an implicit global concern.
 
-That made two things harder than necessary:
+That makes two things harder than necessary:
 
 - loading a font only for the active theme;
-- switching a theme such as `emerald` to a bundled font family without coupling every other theme to the same asset.
+- switching one theme to a bundled font family without coupling every other theme to the same asset.
 
 ## Decision
 
-The theme runtime contract now allows a theme definition to declare static stylesheet assets.
+The theme runtime contract allows a theme definition to declare static stylesheet assets.
 
-The active theme exposes those stylesheets through `ThemeDefinition.assets.stylesheets`. The root layout renders `<link rel="stylesheet">` tags for the active theme only.
+The active theme exposes those stylesheets through a typed assets field, named `ThemeDefinition.assets.stylesheets` in this example. The root layout renders `<link rel="stylesheet">` tags for the active theme only.
 
 Theme CSS files remain responsible for semantic font token assignments such as `--theme-font-heading` and `--theme-font-body`. The stylesheet asset layer is responsible only for loading font-face declarations and related static theme assets.
 
-`emerald` now declares the Neue Haas stylesheet at `/fonts/neue-haas/stylesheet.css` and maps both heading and body font tokens to that family. `sapphire` also declares the same stylesheet because it already depends on the same font family.
+For example, a theme can declare a bundled stylesheet at `/fonts/display-family/stylesheet.css` and map its heading token to that font family. Another theme that uses the same family declares the same stylesheet in its own assets field. The path is illustrative; use the location of the project's actual font stylesheet.
 
 ## Consequences
 
 Themes can opt into custom fonts without making those font files a global application default.
 
-Inactive theme font stylesheets are no longer loaded unnecessarily.
+Font stylesheets needed only by inactive themes are not loaded unnecessarily.
 
-Adding a custom theme font now requires two explicit steps:
+Adding a custom theme font requires two explicit steps:
 
 1. declare the stylesheet in the theme definition;
 2. reference the family through the theme's semantic font tokens.
 
-The runtime contract now covers visual assets as well as component composition, which keeps theme-specific behavior in one place.
+The runtime contract covers visual assets as well as component composition, which keeps theme-specific behavior in one place.

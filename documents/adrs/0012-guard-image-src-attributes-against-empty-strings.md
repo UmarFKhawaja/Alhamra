@@ -9,7 +9,7 @@ Passing an empty string `""` to an `<img src>` attribute causes the browser to r
 
 > An empty string ("") was passed to the src attribute. This may cause the browser to download the whole page again over the network.
 
-Several components rendered `<img src={value}>` without first coercing empty strings to `undefined`. The `ImageAsset` type (`src: string`) and hook defaults (e.g. `brandLogoSource = navigation.brand.logo.src || ''`) both allow empty strings to flow into the render tree.
+A component that renders `<img src={value}>` can receive an empty string even when the source is typed as `string`. For example, an `ImageAsset` type with `src: string` and a hook default such as `imageSource = asset.src || ''` both allow empty strings to flow into the render tree.
 
 ## Decision
 

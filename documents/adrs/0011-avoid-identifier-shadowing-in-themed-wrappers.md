@@ -5,19 +5,20 @@
 
 ## Context
 
-Theme wrapper components sometimes reuse another implementation and export a function with the same name. For example:
+A themed component may wrap a theme-agnostic shared component and export a function with the same name. Example paths below illustrate a layout with a shared component layer and a separate theme contract.
+
+The following wrapper introduces a conflicting identifier:
 
 ```tsx
-import { HomeView } from '../../default/HomeView';
+import { ContentPanel } from '../../../components/ContentPanel';
+import type { ContentPanelProps } from './props';
 
-export function HomeView(props: HomeViewProps) {
-  return <HomeView {...props}/>;
+export function ContentPanel(props: ContentPanelProps) {
+  return <ContentPanel {...props}/>;
 }
 ```
 
-The local `function HomeView` declaration shadows the imported binding. The JSX `<HomeView .../>` inside the body resolves to the local function rather than the imported component. The component calls itself recursively on every render until the call stack overflows.
-
-Bundlers such as esbuild (used by Vite) treat the import binding and local declaration as the same identifier. The delegated component is dead-code eliminated from the output because its import is never referenced. The build produces a wrapper that calls itself, and the crash only surfaces at runtime during SSR.
+The local `function ContentPanel` declaration conflicts with the imported binding. This should be caught by type checking. If conflicting code reaches runtime and the JSX resolves to the local function, the component calls itself recursively instead of delegating to the imported component.
 
 The same pattern affects type-only re-exports in theme `props.ts` files:
 
@@ -32,11 +33,11 @@ export type AuthShellProps = AuthShellProps; // TS2440
 1. **Runtime component wrappers** must alias the delegated import so the local export name does not collide with the imported binding:
 
    ```tsx
-   import { HomeView as DefaultHomeView } from '../../default/HomeView';
-   import type { HomeViewProps } from '../../core/contract';
+   import { ContentPanel as SharedContentPanel } from '../../../components/ContentPanel';
+   import type { ContentPanelProps } from './props';
 
-   export function HomeView(props: HomeViewProps) {
-     return <DefaultHomeView {...props}/>;
+   export function ContentPanel(props: ContentPanelProps) {
+     return <SharedContentPanel {...props}/>;
    }
    ```
 
@@ -48,6 +49,8 @@ export type AuthShellProps = AuthShellProps; // TS2440
 
 3. New themed wrappers must follow these patterns from the start. Existing wrappers must be audited for shadowed identifiers.
 
+These examples wrap a shared component outside the theme layer. Contract-bound theme views remain independently implemented by each theme, as described in [ADR-0005](0005-select-themes-through-a-typed-runtime-contract.md).
+
 ## Consequences
 
 - Themed wrappers delegate to the imported implementation as intended. No infinite recursion can arise from shadowed imports.
@@ -58,6 +61,6 @@ export type AuthShellProps = AuthShellProps; // TS2440
 
 ## Rejected alternatives
 
-- **Renaming the local export to differ from the import name** (e.g. `DefaultHomeView` instead of `HomeView`) was rejected because the themed wrapper must match the name expected by the theme registry contract.
+- **Renaming the local export to differ from the import name** (e.g. exporting `SharedContentPanel` instead of `ContentPanel`) was rejected because import aliasing resolves the conflict while preserving the wrapper's public API.
 - **Suppressing TypeScript errors with `@ts-ignore` or `@ts-expect-error`** was rejected because it masks the problem and does not fix the runtime crash.
-- **Restructuring the theme registry to resolve names differently** was rejected because the current contract-based registry design is deliberate and well-understood (ADR-0005).
+- **Restructuring the theme registry to resolve names differently** was rejected because naming conflicts can be resolved locally without changing the typed contract described in ADR-0005.

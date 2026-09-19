@@ -5,15 +5,15 @@
 
 ## Context
 
-Public managed content already supplied branding, but authentication layouts and document metadata used hard-coded logo and favicon paths.
+Branding may come from managed content or application settings while authentication layouts and document metadata use hard-coded logo and favicon paths.
 
-This produced multiple sources of truth and meant a branding update could affect public pages without updating authentication or other application shells.
+Multiple sources of truth allow a branding update to affect public pages without updating authentication or other application shells.
 
 ## Decision
 
-The React Router root loader resolves application branding from the stored home-page document.
+The root loader resolves application branding from one configured source, such as a stored site-settings record or managed content document. In a React Router application, this is the root route loader.
 
-The root normalizes the managed brand into a `ThemeBranding` value containing:
+The root normalizes that source into a shared branding type, called `ThemeBranding` in these examples, containing:
 
 - brand name and home link;
 - logo source and alternative text;
@@ -25,7 +25,7 @@ Theme shells consume branding from the runtime rather than importing hard-coded 
 
 Nested route loaders do not repeat the branding query. In particular, the management workspace receives `ThemeBranding` from `ThemeRuntimeProvider`, so its shells use the same normalized value as the favicon and authentication shell.
 
-A built-in `default` brand remains as a defensive fallback. The loader uses it when:
+Provide a built-in default brand as a defensive fallback. The loader uses it when:
 
 - stored content is unavailable;
 - database access fails;
@@ -33,11 +33,11 @@ A built-in `default` brand remains as a defensive fallback. The loader uses it w
 
 ## Consequences
 
-Public pages, authentication pages, management pages, and document metadata share one managed branding source.
+Public pages, authentication pages, management pages, and document metadata share one branding source.
 
 Theme implementations can decide how to present the same branding data.
 
-The root loader now has a read dependency on stored home-page content. Failure is deliberately non-fatal because fallback branding keeps the application renderable.
+The root loader has a read dependency on the configured branding source. Failure is deliberately non-fatal because fallback branding keeps the application renderable.
 
 The fallback assets remain part of the deployed application and must continue to exist.
 

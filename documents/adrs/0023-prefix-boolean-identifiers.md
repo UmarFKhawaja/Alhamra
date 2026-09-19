@@ -5,9 +5,9 @@
 
 ## Context
 
-Boolean variables, state fields, and props appeared in the codebase without a consistent naming convention. Some used bare nouns (`active`, `disabled`, `required`) while others used question-like prefixes (`isActive`, `hasError`, `canEdit`) or more domain-specific verb-led forms.
+Boolean variables, state fields, and props can follow different naming conventions. Some use bare adjectives (`active`, `disabled`, `required`) while others use question-like prefixes (`isActive`, `hasError`, `canEdit`) or more domain-specific verb-led forms.
 
-The mixed convention made boolean intent harder to distinguish from noun-like identifiers that represent objects or string values.
+A mixed convention makes boolean intent harder to distinguish from noun-like identifiers that represent objects or string values.
 
 ## Decision
 
@@ -16,13 +16,13 @@ Every boolean identifier must read as a plain-English proposition that can be an
 Common forms include:
 
 - `is` — describes a state or property: `isActive`, `isOpen`, `isSlugEdited`
-- `has` — describes possession or presence: `hasError`, `hasCustomer`, `hasManageUserAccess`
+- `has` — describes possession or presence: `hasError`, `hasSelection`, `hasUserAccess`
 - `can` — describes capability or permission: `canEdit`, `canView`, `canManageRoleAssignment`
-- `requires` — describes a requirement or prerequisite: `requiresConsultation`, `requiresPrescription`
+- `requires` — describes a requirement or prerequisite: `requiresApproval`, `requiresAuthentication`
 
 Other verb-led forms are acceptable when they read naturally as a yes/no statement in the domain language.
 
-The proposition shape is never omitted. A boolean named `active` is a defect and should be renamed to `isActive`. A boolean named `consultationRequired` is weaker than `requiresConsultation` because it stops reading as a direct question-like proposition.
+The proposition shape is never omitted. A boolean named `active` is a defect and should be renamed to `isActive`. A boolean named `approvalRequired` is weaker than `requiresApproval` because it stops reading as a direct question-like proposition.
 
 ## Consequences
 

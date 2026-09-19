@@ -5,9 +5,9 @@
 
 ## Context
 
-Components were previously stored as individual `.tsx` files. Their props, public types, private models, hooks, helper methods, subcomponents, and styles were either embedded in the same file or placed elsewhere without a consistent ownership boundary.
+Storing components as individual `.tsx` files can leave their props, public types, private models, hooks, helper methods, subcomponents, and styles embedded in one large file or scattered without a consistent ownership boundary.
 
-That structure made large components harder to navigate and made it unclear which types and helpers formed part of a component's public API.
+As components grow, that structure makes them harder to navigate and obscures which types and helpers form part of their public API.
 
 ## Decision
 
@@ -28,7 +28,7 @@ The following files are used when needed:
 - `hook.ts` for a hook that is deliberately part of the public API, such as a context wrapper. It is exported by `index.ts`.
 - `methods.ts` and `methods/` for private helper methods, following the same size rule as hooks.
 - `components.ts` and `components/` for private subcomponents used to make the main component easier to understand.
-- `styles.module.css` for styles owned by the component, as described in [ADR-0002](/documents/adrs/0002-colocate-component-styles.md).
+- `styles.module.css` for styles owned by the component, as described in [ADR-0002](0002-colocate-component-styles.md).
 
 Private models, hooks, methods, and subcomponents must not be re-exported from the parent `index.ts`.
 
@@ -40,12 +40,12 @@ Component ownership and public API boundaries are explicit.
 
 Imports can continue to target the component directory because `index.ts` acts as the package boundary.
 
-The repository contains more small files and directories. This is an intentional trade-off for discoverability, reviewability, and local ownership.
+This convention introduces more small files and directories. This is an intentional trade-off for discoverability, reviewability, and local ownership.
 
 Creating a `types.ts` or moving a type between `models.ts` and `types.ts` is an architectural decision: it changes whether callers may depend on that type.
 
 ## Examples
 
-`ImageSelect` keeps upload behavior in `hooks/useImageSelectController.ts`, helper functions in `methods.ts`, private state types in `models.ts`, and public handle and asset types in `types.ts`.
+For example, an `ImageSelect` component can keep upload behavior in `hooks/useImageSelectController.ts`, helper functions in `methods.ts`, private state types in `models.ts`, and public handle and asset types in `types.ts`.
 
-`ThemeRuntimeProvider` exposes its public context hook through `hook.ts`, while its raw context remains private.
+A context provider such as `ThemeRuntimeProvider` can expose its public context hook through `hook.ts`, while its raw context remains private.

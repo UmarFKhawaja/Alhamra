@@ -5,35 +5,35 @@
 
 ## Context
 
-Password-based sign-in passed an absolute `callbackURL` constructed from `request.url`:
+Authentication flows can construct an absolute callback URL from the incoming request. For example:
 
 ```ts
 callbackURL: `${url.origin}/sign-in?verification=complete`
 ```
 
-In production behind a reverse proxy, the `request.url` origin seen by the server (e.g. `http://internal:4173`) differs from the public origin (e.g. `https://example.com`). better-auth's global origin check middleware validates every `callbackURL` against the trusted origins list, which is derived from `process.env.ORIGIN`. When the origins do not match, the middleware rejects the request with `Invalid callbackURL`.
+Behind a reverse proxy, the origin in `request.url` seen by the server (e.g. `http://internal:4173`) can differ from the public origin (e.g. `https://example.com`). An authentication library that validates callback URLs against configured trusted origins can reject a callback constructed from the internal origin.
 
-Email OTP sign-in did not pass a `callbackURL` at all and was unaffected. Social sign-in already used a relative path (`/`) and was also unaffected.
+This guideline applies when the authentication library supports application-relative callback paths and resolves them against a configured public base URL.
 
 ## Decision
 
-Internal callback URLs that point back into the application must use relative paths:
+Internal callback URLs that point back into the application must use root-relative paths when the authentication library supports them:
 
 ```ts
 callbackURL: `/sign-in?verification=complete`
 ```
 
-This rule applies wherever the application constructs a callback URL that redirects to a route within the same deployment. External callbacks (e.g. OAuth provider redirects) may still require absolute URLs, but those are constructed by the auth library from the trusted `baseURL`, not from the incoming request.
+This rule applies wherever the application constructs a supported callback URL that redirects to a route within the same deployment. External callbacks (e.g. OAuth provider redirects) may require absolute URLs; construct those through the authentication library's configured public base URL. If a library requires an absolute internal callback URL, centralize its construction using the same trusted base URL instead of the incoming request origin.
 
 ## Consequences
 
-- Password sign-in works consistently across all environments (local, behind a proxy, direct).
-- No dependency on request URL origin matching the configured `ORIGIN`.
-- Relative callback URLs are already permitted by better-auth's origin check middleware (it passes `allowRelativePaths: true` for the `callbackURL` label).
+- Internal callback construction works consistently across local, proxied, and direct deployments.
+- Callback construction does not depend on the request URL origin matching the configured public origin.
+- Adoption requires checking the authentication library's support for relative callbacks and configuring its trusted public base URL.
 - Reviewers can enforce this by flagging any `${request.url.origin}` or `${url.origin}` usage inside callback URL construction.
 
 ## Rejected alternatives
 
-- **Adding `trustedOrigins` to the auth config to include the internal origin** was rejected because it creates a configuration coupling between deployment infrastructure and application code that breaks when the proxy topology changes.
-- **Enabling better-auth's `trustedProxyHeaders`** was rejected because it requires the proxy to set `x-forwarded-host` and `x-forwarded-proto` headers, which may not always be available or may need additional proxy configuration.
-- **Constructing the callback URL from `process.env.ORIGIN`** was rejected because it duplicates configuration that already exists in the auth config and introduces an environment variable dependency into every route file that triggers auth.
+- **Adding the internal origin to the authentication library's trusted origins** was rejected because it creates a configuration coupling between deployment infrastructure and application code that breaks when the proxy topology changes.
+- **Relying on forwarded proxy headers solely to construct internal callbacks** was rejected because it adds proxy configuration and header-trust dependencies when supported relative paths already express the destination.
+- **Constructing absolute URLs from an environment variable in every route** was rejected because it duplicates authentication configuration and spreads deployment-specific dependencies across callers.

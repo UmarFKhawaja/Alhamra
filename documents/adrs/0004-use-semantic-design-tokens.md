@@ -5,9 +5,9 @@
 
 ## Context
 
-Components referenced palette-specific names such as brand gold, blue, light, and dark values. Those names describe the current palette rather than the purpose of a color or measurement.
+When components reference palette-specific names such as brand gold, blue, light, and dark values, those names describe the current palette rather than the purpose of a color or measurement.
 
-Changing the visual identity or color mode therefore required knowledge of palette choices throughout the component tree.
+Changing the visual identity or color mode then requires knowledge of palette choices throughout the component tree.
 
 ## Decision
 
@@ -26,9 +26,9 @@ Semantic tokens describe roles including:
 - panel and floating shadows;
 - heading and body typography.
 
-Tailwind v4 registers semantic utilities in `app/app.css` through `@theme inline`. The utilities resolve to CSS custom properties such as `--theme-surface` and `--theme-fg-heading`.
+For a Tailwind v4 implementation, register semantic utilities in the root stylesheet through `@theme inline`. The utilities resolve to CSS custom properties such as `--theme-surface` and `--theme-fg-heading`.
 
-Each theme maps the same custom property contract to its own values in:
+Each theme maps the same custom property contract to its own values in a theme stylesheet. An example location is:
 
 ```text
 app/themes/<theme>/theme.css
@@ -42,7 +42,7 @@ Components use role-based utilities such as `bg-surface`, `text-fg-heading`, `te
 
 A theme can alter color, radius, shadow, and typography without changing component behavior.
 
-The component layer no longer registers or references the legacy `brand-*` palette. Color-mode-specific `dark:` utilities have also been removed from component styles; light, dark, and system modes are implemented by substituting semantic custom properties at the root.
+The component layer does not register or reference palette-specific tokens such as `brand-*`. Component styles also avoid color-mode-specific `dark:` utilities; light, dark, and system modes are implemented by substituting semantic custom properties at the root.
 
 Fixed black and white values remain only where they are part of an external provider's visual identity, such as Apple and Google sign-in controls.
 

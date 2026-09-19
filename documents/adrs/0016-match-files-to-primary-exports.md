@@ -5,7 +5,7 @@
 
 ## Context
 
-The repository has accumulated several grouped modules that mix multiple concerns inside one file:
+Grouped modules can mix multiple concerns inside one file:
 
 - database schema files that define more than one table;
 - query and mutation files that export several unrelated operations;
@@ -15,7 +15,7 @@ That structure makes it harder to scan the codebase, harder to clean up dormant 
 
 The same discoverability problem appears inside larger React component packages when hooks, helper methods, subcomponents, or standalone public types accumulate in shared files whose names do not clearly identify the main export.
 
-The repository already uses component package directories as described in [ADR-0001](/documents/adrs/0001-package-components-in-pascal-case-directories.md). This decision adds a naming and file-boundary rule that complements that packaging rule.
+This decision complements the component package directories described in [ADR-0001](./0001-package-components-in-pascal-case-directories.md) with a naming and file-boundary rule.
 
 ## Decision
 
@@ -25,7 +25,7 @@ Each non-barrel file should have one primary export. Small colocated constants t
 
 ## Database Structure
 
-Database modules under `app/lib/server/db` use these directories:
+Organize database modules into these directories under the project's database root, shown here as `app/lib/server/db`:
 
 - `entities/` for table definitions;
 - `queries/` for read operations;
@@ -40,10 +40,10 @@ Examples:
 
 - `user.ts` exports `user`;
 - `userRole.ts` exports `userRole`;
-- `homePage.ts` exports `homePage`;
-- `homePageContent.ts` exports `homePageContent`.
+- `project.ts` exports `project`;
+- `projectMember.ts` exports `projectMember`.
 
-The old `schema/` name is replaced by `entities/` because these files define domain entities, not an arbitrary grab-bag of schema concerns.
+Use `entities/` for domain entity definitions so the directory has a clear purpose rather than collecting unrelated schema concerns.
 
 ### Queries
 
@@ -53,7 +53,7 @@ Examples:
 
 - `getUserByID.ts` exports `getUserByID`;
 - `listUsers.ts` exports `listUsers`;
-- `getManagedHomePageContent.ts` exports `getManagedHomePageContent`.
+- `getProjectByID.ts` exports `getProjectByID`.
 
 ### Mutations
 
@@ -61,9 +61,9 @@ Each mutation file exports one primary mutation function whose filename matches 
 
 Examples:
 
-- `updateManageUserProfile.ts` exports `updateManageUserProfile`;
-- `setManageUserPassword.ts` exports `setManageUserPassword`;
-- `upsertManagedArticle.ts` exports `upsertManagedArticle`.
+- `updateUserProfile.ts` exports `updateUserProfile`;
+- `setUserPassword.ts` exports `setUserPassword`;
+- `upsertProject.ts` exports `upsertProject`.
 
 ### Types
 
@@ -73,8 +73,8 @@ Each helper type or reusable value-set file exports one primary object whose fil
 
 Examples:
 
-- `AssetStorageContent.ts` exports `AssetStorageContent`;
-- `ManageUserProfileUpdate.ts` exports `ManageUserProfileUpdate`;
+- `ProjectSummary.ts` exports `ProjectSummary`;
+- `UserProfileUpdate.ts` exports `UserProfileUpdate`;
 - `roleValues.ts` exports `roleValues`;
 - `accountStatusValues.ts` exports `accountStatusValues`.
 
@@ -98,7 +98,7 @@ Examples:
 
 - `hooks/useImageSelectController.ts` exports `useImageSelectController`;
 - `components/CountryPicker/component.tsx` exports `CountryPicker`;
-- `methods/getArticleKindFromSlug.ts` exports `getArticleKindFromSlug`;
+- `methods/getFileExtension.ts` exports `getFileExtension`;
 - `types/ThemeRuntimeValue.ts` exports `ThemeRuntimeValue`.
 
 If a public or private type set becomes large enough that `types.ts` or `models.ts` becomes a grab-bag, split those exports into one-type-per-file and use filenames that match the exported type names.
@@ -117,7 +117,7 @@ Large grouped modules are discouraged, which makes dormant or half-built work ea
 
 Refactors will usually touch more files, and the repository will contain more small modules. This is an intentional trade-off in favor of clarity, reviewability, and local ownership.
 
-This rule works best when export names are stable and well chosen. Renaming an export now implies renaming its file as part of the same change.
+This rule works best when export names are stable and well chosen. Renaming an export implies renaming its file as part of the same change.
 
 ## Exceptions
 

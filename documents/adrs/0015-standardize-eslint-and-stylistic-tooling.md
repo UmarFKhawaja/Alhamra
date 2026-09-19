@@ -5,7 +5,7 @@
 
 ## Context
 
-The codebase needed a consistent linting and formatting baseline built on modern flat-config tooling:
+TypeScript and React codebases benefit from a consistent linting and formatting baseline built on flat-config tooling:
 
 - ESLint flat config;
 - TypeScript-aware rules through `typescript-eslint`;
@@ -17,7 +17,7 @@ Without that baseline, formatting drift and low-signal review comments accumulat
 
 ## Decision
 
-The project now uses an ESLint flat configuration with this core stack:
+Use an ESLint flat configuration with this core stack:
 
 - `@eslint/js`;
 - `typescript-eslint`;
@@ -26,17 +26,17 @@ The project now uses an ESLint flat configuration with this core stack:
 - `eslint-plugin-react-refresh`;
 - `eslint-plugin-simple-import-sort`.
 
-The project now provides:
+Expose the following scripts, or equivalent commands for the project's package manager:
 
 - `npm run lint`;
 - `npm run lint:fix`;
 - `npm run format`.
 
-The configuration intentionally omits content restrictions that depend on application-specific files or conventions outside this repository.
+Keep the shared configuration independent of application-specific files. Add project-specific restrictions in the project configuration.
 
-The configuration also disables selected React compiler-style lint rules that currently conflict with the application's proxy-based content editor and existing state synchronization patterns. The shared style, import-order, and TypeScript safety rules remain enforced.
+Any rule exceptions required by an application's architecture must be narrowly scoped and documented with their rationale. The shared style, import-order, and TypeScript safety rules remain enforced.
 
-Import ordering is enforced with these groups:
+Enforce import ordering with these groups, adapting alias and generated-module prefixes to the project:
 
 - `react` imports first;
 - `react-` prefixed packages second;
@@ -50,10 +50,10 @@ Those imports remain in one contiguous block. Blank lines between import stateme
 
 ## Consequences
 
-Formatting and import ordering are now machine-enforced instead of review-enforced.
+Formatting and import ordering are machine-enforced instead of review-enforced.
 
 Most style corrections can be applied automatically through `npm run lint:fix`.
 
-The lint stack now follows one consistent tooling baseline while still respecting the application's current architectural constraints.
+The lint stack follows one consistent tooling baseline while allowing documented architectural exceptions.
 
-If the application later refactors away from the current reactive editor patterns, the disabled React compiler-style rules should be revisited and potentially re-enabled.
+Revisit any disabled rules when the architectural constraints that justified them change.

@@ -5,9 +5,9 @@
 
 ## Context
 
-Large components combined state, fetchers, workflow decisions, permissions, route interpretation, side effects, and detailed JSX.
+Large components can combine state, fetchers, workflow decisions, permissions, route interpretation, side effects, and detailed JSX.
 
-That coupling made behavior difficult to reuse across themes. Creating a second visual treatment would either duplicate the workflow or force visual components to retain implementation-specific behavior.
+That coupling makes behavior difficult to reuse across themes. Creating a second visual treatment can then duplicate the workflow or force visual components to retain implementation-specific behavior.
 
 ## Decision
 
@@ -19,11 +19,11 @@ Route loader/action -> controller -> themed view
 
 Route modules remain responsible for server data, mutations, authorization, and redirects.
 
-Controller hooks own client-side behavior and expose a view model. Cross-screen controllers live under `app/features`; component-specific controllers may live in a component's private `hooks/` directory.
+Controller hooks own client-side behavior and expose a view model. Cross-screen controllers live in a shared feature layer, for example `app/features`; component-specific controllers may live in a component's private `hooks/` directory.
 
 Themed views receive data and actions through typed props and render the visual structure.
 
-The refactor applies this pattern to:
+Examples of workflows suited to this pattern include:
 
 - sign-in workflow state;
 - management workspace navigation;
@@ -33,7 +33,7 @@ The refactor applies this pattern to:
 
 A controller may expose React Router fetcher form components when the view must render a form, but the view does not own the fetcher lifecycle or workflow decisions.
 
-Interaction state that exists only because of one theme's composition remains inside that theme component. For example, the Sapphire management shell owns its mobile drawer state because the Emerald shell uses a different navigation structure. The shared management controller exposes navigation meaning and active items, not shell-specific open and close behavior.
+Interaction state that exists only because of one theme's composition remains inside that theme component. For example, a theme with a mobile drawer owns its drawer state even when another theme uses a different navigation structure. The shared management controller exposes navigation meaning and active items, not shell-specific open and close behavior.
 
 ## Consequences
 
